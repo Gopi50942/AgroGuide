@@ -1,0 +1,78 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────
+// AgroGuide — Firebase Storage Security Rules
+//
+// OPTIONAL / UNUSED IN CURRENT FREE DEPLOYMENT
+// (Firebase Storage is intentionally disabled on Spark plan.
+// Retained for future Blaze migration portability.)
+// ─────────────────────────────────────────────
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+    function isReasonableImage() {
+      return request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+    function isReasonableDocument() {
+      return request.resource.size < 20 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*')
+            || request.resource.contentType == 'application/pdf');
+    }
+
+    match /profile-images/{uid}/{fileName} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(uid) && isReasonableImage();
+    }
+
+    match /farm-images/{uid}/{fileName} {
+      allow read: if isOwner(uid);
+      allow write: if isOwner(uid) && isReasonableImage();
+    }
+
+    match /crop-images/{uid}/{fileName} {
+      allow read: if isOwner(uid);
+      allow write: if isOwner(uid) && isReasonableImage();
+    }
+
+    match /soil-reports/{uid}/{fileName} {
+      allow read: if isOwner(uid);
+      allow write: if isOwner(uid) && isReasonableDocument();
+    }
+
+    match /government-documents/{uid}/{fileName} {
+      allow read: if isOwner(uid);
+      allow write: if isOwner(uid) && isReasonableDocument();
+    }
+
+    function isReasonableAudio() {
+      return request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('audio/.*');
+    }
+
+    match /community-images/{uid}/{fileName} {
+      allow read: if isSignedIn();
+      allow write, delete: if isOwner(uid) && isReasonableImage();
+    }
+
+    match /users/{uid}/community/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write, delete: if isOwner(uid) && (isReasonableImage() || isReasonableAudio());
+    }
+
+    match /users/{uid}/farm-diary/{allPaths=**} {
+      allow read: if isOwner(uid);
+      allow write, delete: if isOwner(uid) && isReasonableImage();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

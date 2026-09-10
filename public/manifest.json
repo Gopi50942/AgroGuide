@@ -1,0 +1,29 @@
+{
+  "name": "AgroGuide — Smart Farming Companion",
+  "short_name": "AgroGuide",
+  "description": "Intelligence for every stage of farming — weather, crop advisory, soil health, and market intelligence.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F3E9",
+  "theme_color": "#2C4C38",
+  "orientation": "portrait-primary",
+  "categories": ["agriculture", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

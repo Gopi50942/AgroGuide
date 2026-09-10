@@ -1,0 +1,531 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────
+// AgroGuide — Firestore Security Rules
+//
+// Principle: a signed-in farmer can only read/write documents that
+// belong to them (matched by `ownerId` == their uid, or `uid` for the
+// `users` profile collection). Reference/config collections such as
+// `government_services` are readable by any signed-in user and are
+// only writable by a trusted admin process (e.g. via the Firebase
+// console or a server-side script), never from the client.
+// ─────────────────────────────────────────────
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(ownerField) {
+      return isSignedIn() && request.auth.uid == resource.data[ownerField];
+    }
+
+    function isOwnerOnCreate(ownerField) {
+      return isSignedIn() && request.auth.uid == request.resource.data[ownerField];
+    }
+
+    // Farmer profile — keyed by uid directly
+    match /users/{uid} {
+      allow read, update, delete: if isSignedIn() && request.auth.uid == uid;
+      allow create: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Generic ownerId-scoped collections.
+    // Firestore rules don't support a "where collection in [...]" match
+    // guard, so each collection gets its own (identical) rule block.
+    match /farms/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /farmer_loans/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /crops/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /crop_tasks/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /soil_reports/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /weather_preferences/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /notifications/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /chat_sessions/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /chat_messages/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /disease_reports/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /expenses/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /revenues/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /farm_diary/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /equipment/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /insurance/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /harvest_records/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /produce_sales/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /market_watchlists/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /scheme_applications/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /settings/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /irrigation_logs/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /user_consents/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /audit_logs/{docId} {
+      allow read: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+      allow update, delete: if false; // Audit logs are immutable
+    }
+
+    // ── Batch 4 Ecosystem & Institutional Collections ──
+
+    // Extension Officer Profiles — verified officers
+    match /officer_profiles/{uid} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && request.auth.uid == uid && request.resource.data.verified == false;
+      allow delete: if false;
+    }
+
+    // Farmer-Officer Controlled Consent
+    match /farmer_officer_access/{docId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.farmerId || request.auth.uid == resource.data.officerId);
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.farmerId;
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.farmerId;
+    }
+
+    // SMS / WhatsApp Delivery Logs
+    match /message_delivery_logs/{docId} {
+      allow read: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+      allow update, delete: if false; // Delivery logs are immutable
+    }
+
+    // FPO Directory & Aggregation
+    match /fpos/{fpoId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Managed by verified institutional process
+    }
+    match /fpo_memberships/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /fpo_lots/{docId} {
+      allow read: if isSignedIn();
+      allow create: if isOwnerOnCreate('ownerId');
+      allow update, delete: if isOwner('ownerId');
+    }
+
+    // Custom Hiring Machinery Requests
+    match /equipment_requests/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+
+    // Harvest Batch Traceability (Public read only if isPublic is true)
+    match /harvest_batches/{docId} {
+      allow read: if (isSignedIn() && isOwner('ownerId')) || resource.data.isPublic == true;
+      allow create: if isOwnerOnCreate('ownerId');
+      allow update, delete: if isOwner('ownerId');
+    }
+
+    // Livestock & Mixed Farming Ledger
+    match /livestock/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /milk_yield_logs/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+
+    // Sustainability & Carbon Indicators
+    match /sustainability_practices/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+
+    // ── Batch 5 Production Collections ──
+
+    // Crop Insurance & Loss Evidence (Owner isolated)
+    match /crop_insurance_records/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+    match /crop_loss_events/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+
+    // Warehouse Receipt Record Keeping
+    match /warehouse_records/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+
+    // Agriculture Content Catalog / Admin CMS
+    match /content_catalog/{docId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only manageable by trusted backend/admin
+    }
+
+    // ── Batch 6 Scale & Field Collections ──
+
+    // Farmer Support Tickets (Farmer owner + assigned officer)
+    match /support_tickets/{ticketId} {
+      allow read: if isSignedIn() && (
+        isOwner('ownerId') ||
+        resource.data.assignedOfficerId == request.auth.uid
+      );
+      allow create: if isOwnerOnCreate('ownerId');
+      allow update: if isSignedIn() && (
+        isOwner('ownerId') ||
+        resource.data.assignedOfficerId == request.auth.uid
+      );
+      allow delete: if isOwner('ownerId');
+    }
+
+    // Produce Quality Grading Records (Owner isolated)
+    match /produce_quality_records/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+
+    // Farm Input Stock Inventory (Owner isolated)
+    match /farm_input_inventory/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+
+    // Crop Budget Plans (Owner isolated)
+    match /crop_budgets/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+
+    // Farmer Document Metadata Vault (Owner isolated)
+    match /farmer_documents/{docId} {
+      allow read, update, delete: if isOwner('ownerId');
+      allow create: if isOwnerOnCreate('ownerId');
+    }
+
+    // Field Pilot Feedback (Participant owner)
+    match /pilot_feedback/{feedbackId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isOwner('ownerId');
+    }
+
+    // Community — readable by any signed-in user, writable only by the author
+    match /community_posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isOwnerOnCreate('ownerId');
+      allow update, delete: if isOwner('ownerId');
+
+      // Post likes subcollection — each user creates/deletes their own like doc
+      match /likes/{userId} {
+        allow read: if isSignedIn();
+        allow create, delete: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+    match /community_comments/{commentId} {
+      allow read: if isSignedIn();
+      allow create: if isOwnerOnCreate('ownerId');
+      allow update, delete: if isOwner('ownerId');
+    }
+
+    // Reference/config data — read-only from the client
+    match /government_services/{serviceId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+    match /government_schemes/{schemeId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+    match /market_data/{docId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // ── Government Platform V2 Collections (Phases 102–121) ──
+
+    // Administrative Geography Hierarchy
+    match /administrative_regions/{regionId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // Farmer Service Enrollments
+    match /farmer_service_enrollments/{enrollmentId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.farmerId || request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.farmerId;
+      allow update, delete: if false;
+    }
+
+    // Farmer Grievances
+    match /farmer_grievances/{grievanceId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.farmerId || request.auth.uid == resource.data.assignedOfficerId || request.auth.token.role == 'block_officer' || request.auth.token.role == 'district_officer');
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.farmerId;
+      allow update: if isSignedIn() && (request.auth.uid == resource.data.assignedOfficerId || request.auth.token.role == 'district_officer');
+      allow delete: if false;
+    }
+
+    // Government Scheme Cycles
+    match /scheme_cycles/{cycleId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin' || request.auth.token.role == 'system_admin');
+    }
+
+    // Subsidy Evidence Workspaces
+    match /subsidy_evidence/{evidenceId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.farmerId || request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow create, update: if isSignedIn() && request.auth.uid == request.resource.data.farmerId;
+      allow delete: if false;
+    }
+
+    // Digital Field Inspections
+    match /field_inspections/{inspectionId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.farmerId || request.auth.uid == resource.data.officerId || request.auth.token.role == 'district_officer');
+      allow create, update: if isSignedIn() && (request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow delete: if false;
+    }
+
+    // Government Advisories
+    match /government_advisories/{advisoryId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+
+    // Officer Tasks
+    match /officer_tasks/{taskId} {
+      allow read, write: if isSignedIn() && request.auth.uid == resource.data.officerId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.officerId;
+    }
+
+    // Soil Health Campaigns
+    match /soil_campaigns/{campaignId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+
+    // ── Government Platform V3 Collections (Phases 122–141) ──
+
+    // Crop Cutting Experiments
+    match /crop_cutting_experiments/{cceId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.officerId || request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+      allow create, update: if isSignedIn() && (request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow delete: if false;
+    }
+
+    // Equipment Assets & Bookings
+    match /equipment_assets/{assetId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'system_admin');
+    }
+    match /equipment_bookings/{bookingId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.farmerId || request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.farmerId;
+      allow update: if isSignedIn() && (request.auth.uid == resource.data.farmerId || request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow delete: if false;
+    }
+
+    // Fertilizer Stocks & Movements
+    match /fertilizer_stock_points/{stockId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+    match /fertilizer_movements/{movementId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'state_admin' || request.auth.token.role == 'system_admin');
+    }
+
+    // Seed Quality Lots
+    match /seed_lots/{lotId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+
+    // Farmer Training Programs & Enrollments
+    match /training_programs/{programId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+    match /training_enrollments/{enrollmentId} {
+      allow read, create: if isSignedIn();
+      allow update: if isSignedIn() && (request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow delete: if false;
+    }
+
+    // Agriculture Infrastructure Assets
+    match /agriculture_assets/{assetId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'state_admin' || request.auth.token.role == 'system_admin');
+    }
+
+    // ── Government Platform V4 Collections (Phases 142–161) ──
+
+    // Solar Pump Assets & Telemetry
+    match /solar_pump_assets/{pumpId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.ownerId || request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'system_admin');
+    }
+    match /solar_pump_telemetry/{telemetryId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'system_admin');
+    }
+
+    // Cold Chain Assets & Telemetry
+    match /cold_chain_assets/{assetId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+
+    // Agri Input Retailers & Pesticide Products
+    match /agri_input_retailers/{dealerId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+    match /pesticide_products/{productId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'state_admin' || request.auth.token.role == 'system_admin');
+    }
+
+    // FPO Export Dossiers
+    match /export_dossiers/{dossierId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.fpoId || request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+      allow write: if isSignedIn() && (request.auth.uid == request.resource.data.fpoId || request.auth.token.role == 'district_officer');
+    }
+
+    // Voice IVR Broadcasts
+    match /voice_broadcasts/{broadcastId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+
+    // Crop Residue Records
+    match /residue_management_records/{residueId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.ownerId || request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow create, update: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
+    }
+
+    // Farmer Agri SOS Reports
+    match /agri_sos_reports/{sosId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.ownerId || request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
+      allow update: if isSignedIn() && (request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow delete: if false;
+    }
+
+    // Produce Transport Requests
+    match /transport_requests/{requestId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.farmerId || request.auth.token.role == 'district_officer');
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.farmerId;
+      allow update: if isSignedIn() && (request.auth.uid == resource.data.farmerId || request.auth.token.role == 'district_officer');
+    }
+
+    // Agri Dealer Compliance Registry
+    match /dealer_registry/{dealerId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+
+    // ── Final Government Platform V5 Collections (Phases 162–181) ──
+
+    // Salinity Stations & Telemetry
+    match /salinity_stations/{stationId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+
+    // Residue Lab Tests
+    match /residue_test_records/{testId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+
+    // Canal Sensors
+    match /canal_sensors/{sensorId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'state_admin' || request.auth.token.role == 'system_admin');
+    }
+
+    // Bio-control Batches
+    match /biocontrol_batches/{batchId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'state_admin');
+    }
+
+    // Drone Battery Stations
+    match /drone_battery_stations/{stationId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'district_officer' || request.auth.token.role == 'system_admin');
+    }
+
+    // Carbon MRV Records
+    match /carbon_mrv_records/{recordId} {
+      allow read: if isSignedIn() && (request.auth.uid == resource.data.ownerId || request.auth.token.role == 'extension_officer' || request.auth.token.role == 'district_officer');
+      allow create, update: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
+    }
+
+    // Research Trials
+    match /research_trials/{trialId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.token.role == 'state_admin' || request.auth.token.role == 'system_admin');
+    }
+
+    // Deny everything else by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
