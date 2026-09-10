@@ -43,7 +43,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           )}
           <TopBar onOpenDrawer={() => setDrawerOpen(true)} />
-          <main className="flex-1 px-4 sm:px-6 py-6 pb-24 lg:pb-6 max-w-6xl w-full mx-auto min-w-0 overflow-hidden">
+          <main className="flex-1 px-4 sm:px-6 py-6 pb-28 lg:pb-8 max-w-6xl w-full mx-auto min-w-0">
             {children}
           </main>
           <BottomNav onOpenDrawer={() => setDrawerOpen(true)} />

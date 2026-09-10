@@ -34,8 +34,15 @@ export function RuntimeIndicator() {
   }
 
   useEffect(() => {
-    checkHealth();
+    if (process.env.NODE_ENV !== "production") {
+      checkHealth();
+    }
   }, []);
+
+  // In production builds, completely hide development telemetry from end-users
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
 
   // Compute live statuses
   const authStatus: "LIVE" | "DEMO" | "ERROR" | "NOT_CONFIGURED" = user

@@ -53,7 +53,9 @@ export async function fetchWeather(
   }
 
   try {
-    console.log("🌦️ Fetching weather for:", { lat, lng });
+    if (process.env.NODE_ENV !== "production") {
+      console.log("🌦️ Fetching weather for:", { lat, lng });
+    }
 
     const url = new URL("https://api.open-meteo.com/v1/forecast");
 
@@ -77,7 +79,9 @@ export async function fetchWeather(
 
     url.searchParams.set("timezone", "auto");
 
-    console.log("🌐 Open-Meteo URL:", url.toString());
+    if (process.env.NODE_ENV !== "production") {
+      console.log("🌐 Open-Meteo URL:", url.toString());
+    }
 
     const res = await fetch(url.toString());
 
@@ -97,7 +101,9 @@ export async function fetchWeather(
 
     const data = await res.json();
 
-    console.log("✅ Open-Meteo response:", data);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("✅ Open-Meteo response:", data);
+    }
 
     if (!data.current || !data.hourly || !data.daily) {
       throw new Error("Open-Meteo returned incomplete weather data.");

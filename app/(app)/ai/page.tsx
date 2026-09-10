@@ -59,10 +59,23 @@ export default function AiAssistantPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastFailedQuestion, setLastFailedQuestion] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = containerRef.current;
+    if (!container) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+    const lastMsg = messages[messages.length - 1];
+    const isUserMsg = lastMsg?.role === "user";
+
+    // Auto-scroll when user sends a new question or is already near the bottom
+    if (isUserMsg || isNearBottom || messages.length <= 2) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   // Load farmer grounding data
@@ -372,7 +385,7 @@ export default function AiAssistantPage() {
       )}
 
       {/* ── Message Thread ── */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+      <div ref={containerRef} className="flex-1 overflow-y-auto space-y-4 pr-1">
         {messages.map((m) => {
           const isUser = m.role === "user";
           return (

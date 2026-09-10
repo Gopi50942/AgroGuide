@@ -27,11 +27,13 @@ export function requestBrowserLocation(): Promise<GeolocationPosition> {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log("✅ Browser location:", {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-        });
+        if (process.env.NODE_ENV !== "production") {
+          console.log("✅ Browser location:", {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+          });
+        }
 
         resolve(position);
       },
@@ -58,7 +60,9 @@ export async function reverseGeocode(
   accuracy?: number
 ): Promise<ResolvedLocation> {
   try {
-    console.log("📍 Reverse geocoding:", { lat, lng });
+    if (process.env.NODE_ENV !== "production") {
+      console.log("📍 Reverse geocoding:", { lat, lng });
+    }
 
     const url =
       `https://nominatim.openstreetmap.org/reverse` +
@@ -67,7 +71,9 @@ export async function reverseGeocode(
       `&lon=${encodeURIComponent(lng)}` +
       `&addressdetails=1`;
 
-    console.log("🌐 Nominatim URL:", url);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("🌐 Nominatim URL:", url);
+    }
 
     const res = await fetch(url, {
       headers: {
@@ -91,7 +97,9 @@ export async function reverseGeocode(
 
     const data = await res.json();
 
-    console.log("✅ Nominatim response:", data);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("✅ Nominatim response:", data);
+    }
 
     const addr = data.address ?? {};
 
@@ -119,7 +127,9 @@ export async function reverseGeocode(
       isDemo: false,
     };
 
-    console.log("✅ Resolved location:", location);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("✅ Resolved location:", location);
+    }
 
     return location;
   } catch (error) {
