@@ -33,12 +33,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <LocationProvider>
-      <div className="flex min-h-screen bg-cream-100">
+      <div className="flex h-screen overflow-hidden bg-cream-100">
         <Sidebar />
-        <div className="flex-1 min-w-0 flex flex-col lg:pl-64">
+        <div className="flex-1 min-w-0 flex flex-col h-screen overflow-y-auto">
           <ConnectivityBanner />
           {isDemoMode && (
-            <div className="bg-wheat-300 text-ink text-center text-xs sm:text-sm font-semibold py-1.5 px-4">
+            <div className="bg-wheat-300 text-ink text-center text-xs sm:text-sm font-semibold py-1.5 px-4 shrink-0">
               Demo mode — showing sample data for Gopi&rsquo;s farm. Connect Firebase to use your own account.
             </div>
           )}

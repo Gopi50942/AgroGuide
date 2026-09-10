@@ -16,8 +16,8 @@ export function Sidebar() {
   const router = useRouter();
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 shrink-0 h-screen fixed left-0 top-0 bottom-0 z-30 border-r border-forest-100 bg-cream-50 px-4 py-5 no-scrollbar">
-      <div className="px-2 mb-6">
+    <aside className="hidden lg:flex flex-col w-64 shrink-0 h-screen border-r border-forest-100 bg-cream-50 px-4 py-5 no-scrollbar">
+      <div className="px-2 mb-6 shrink-0">
         <Logo />
       </div>
       <nav className="flex-1 space-y-0.5 overflow-y-auto no-scrollbar">
@@ -40,7 +40,7 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="mt-4 pt-4 border-t border-forest-100">
+      <div className="mt-4 pt-4 border-t border-forest-100 shrink-0">
         <div className="flex items-center gap-3 px-2 mb-3">
           <div className="w-9 h-9 rounded-full bg-forest-100 flex items-center justify-center text-forest-700 font-semibold text-sm">
             {profile?.name?.[0]?.toUpperCase() ?? "F"}
