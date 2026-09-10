@@ -19,7 +19,7 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
   return (
     <div className="lg:hidden fixed inset-0 z-50">
       <div className="absolute inset-0 bg-ink/40" onClick={onClose} />
-      <div className="absolute right-0 top-0 bottom-0 w-72 bg-cream-50 p-5 overflow-y-auto animate-fade-up">
+      <div className="absolute right-0 top-0 bottom-0 w-72 bg-cream-50 p-5 overflow-y-auto no-scrollbar animate-fade-up">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-lg font-semibold">{t("nav.menu")}</h2>
           <button onClick={onClose} aria-label="Close menu" className="p-1.5 rounded-full hover:bg-forest-50">

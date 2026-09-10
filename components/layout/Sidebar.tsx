@@ -16,11 +16,11 @@ export function Sidebar() {
   const router = useRouter();
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-forest-100 bg-cream-50/60 px-4 py-5">
+    <aside className="hidden lg:flex flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-forest-100 bg-cream-50/60 px-4 py-5 no-scrollbar">
       <div className="px-2 mb-6">
         <Logo />
       </div>
-      <nav className="flex-1 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto no-scrollbar">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href;
           const Icon = item.icon;

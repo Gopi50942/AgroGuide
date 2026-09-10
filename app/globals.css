@@ -58,6 +58,16 @@
   }
 }
 
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
 /* ─────────────────────────────────────────────
    Dedicated High-Precision Print Styles (A4 Single-Page Soil Health Report)
    ───────────────────────────────────────────── */
