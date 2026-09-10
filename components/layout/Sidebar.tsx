@@ -16,7 +16,7 @@ export function Sidebar() {
   const router = useRouter();
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 shrink-0 h-screen sticky top-0 border-r border-forest-100 bg-cream-50/60 px-4 py-5 no-scrollbar">
+    <aside className="hidden lg:flex flex-col w-64 shrink-0 h-screen fixed left-0 top-0 bottom-0 z-30 border-r border-forest-100 bg-cream-50 px-4 py-5 no-scrollbar">
       <div className="px-2 mb-6">
         <Logo />
       </div>

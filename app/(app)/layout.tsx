@@ -35,7 +35,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <LocationProvider>
       <div className="flex min-h-screen bg-cream-100">
         <Sidebar />
-        <div className="flex-1 min-w-0 flex flex-col">
+        <div className="flex-1 min-w-0 flex flex-col lg:pl-64">
           <ConnectivityBanner />
           {isDemoMode && (
             <div className="bg-wheat-300 text-ink text-center text-xs sm:text-sm font-semibold py-1.5 px-4">
